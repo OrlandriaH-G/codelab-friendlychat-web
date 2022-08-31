@@ -49,6 +49,10 @@
  } from 'firebase/messaging';
  
  // TODO: Import the Firebase Performance Monitoring library here.
+import {
+   getPerformance,
+   trace
+ } from 'firebase/performance';
 
  import { getFirebaseConfig } from './firebase-config.js';
 
@@ -134,20 +138,22 @@
      });
 
      // TODO: Create custom trace to monitor image upload.
-
+     const t = trace(perf, "saveImageMessage");
      // TODO: Record image size.
-
+     t.putMetric('imageSize', file.size);
      // TODO: Record image MIME type.
-
+     t.putAttribute('imageType', file.type);
      // TODO: Start the “timer” for the custom trace.
+     t.start();
 
+      ...
      // 2 - Upload the image to Cloud Storage.
      const filePath = `${getAuth().currentUser.uid}/${messageRef.id}/${file.name}`;
      const newImageRef = ref(getStorage(), filePath);
      const fileSnapshot = await uploadBytesResumable(newImageRef, file);
 
      // TODO: Stop the “timer” for the custom trace.
-
+     t.stop();
      // 3 - Generate a public URL for the file.
      const publicImageUrl = await getDownloadURL(newImageRef);
 
@@ -434,6 +440,6 @@
 const firebaseApp = initializeApp(getFirebaseConfig());
 
 // TODO: Initialize Firebase Performance Monitoring.
-
+getPerformance();
 initFirebaseAuth();
 loadMessages();
